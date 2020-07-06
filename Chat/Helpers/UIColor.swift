@@ -2,13 +2,15 @@
 //  CustomColor.swift
 //  Cycle Trip
 //
-//  Created by Гусейн Агаев on 24.04.2020.
+//  Created by Гусейн Агаев on 20.04.2020.
 //  Copyright © 2020 Прогеры. All rights reserved.
 //
 
 import UIKit
 
 extension UIColor {
+    
+    // MARK: - Initialization
     
     convenience init(hex: UInt, alpha: CGFloat = 1.0) {
         let red = CGFloat((hex & 0xFF0000) >> 16) / 255.0
