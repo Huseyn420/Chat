@@ -25,7 +25,7 @@ final class LoginView: UIViewController {
     private let contentView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = UIColor(hex: 0x2D3540)
+        view.backgroundColor = UIColor.ApplicationСolor.background
         return view
     }()
     
@@ -33,8 +33,8 @@ final class LoginView: UIViewController {
     
     private let inputsContainerView: UIView = {
         let view = UIView()
-        view.backgroundColor = UIColor(hex: 0x000000, alpha: 0.2)
-        view.layer.borderColor = UIColor(hex: 0x000000, alpha: 0.4).cgColor
+        view.backgroundColor = UIColor.ApplicationСolor.interfaceUnit
+        view.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
         view.layer.borderWidth = 0.5
         view.layer.cornerRadius = 20
         view.layer.masksToBounds = true
@@ -43,41 +43,46 @@ final class LoginView: UIViewController {
     
     private let nameTextField: UITextField = {
         let textField = UITextField()
-        let colorPlac = UIColor(hex: 0xFFFFFF, alpha: 0.3)
+        let attributes = [NSAttributedString.Key.foregroundColor: UIColor.ApplicationСolor.textInactiveState]
         
         textField.textColor = .white
-        textField.textContentType = .oneTimeCode
         textField.autocorrectionType = .no
-        textField.attributedPlaceholder = NSAttributedString(string: "Name",  attributes: [NSAttributedString.Key.foregroundColor: colorPlac])
+        textField.textContentType = .oneTimeCode
+        textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
+        textField.attributedPlaceholder = NSAttributedString(string: "Name",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
         textField.leftViewMode = .always
+        
         return textField
     }()
     
     private let emailTextField: UITextField = {
         let textField = UITextField()
-        let colorPlac = UIColor(hex: 0xFFFFFF, alpha: 0.3)
+        let attributes = [NSAttributedString.Key.foregroundColor: UIColor.ApplicationСolor.textInactiveState]
         
         textField.textColor = .white
         textField.layer.borderWidth = 0.5
         textField.autocorrectionType = .no
+        textField.autocapitalizationType = .none
         textField.textContentType = .oneTimeCode
-        textField.layer.borderColor = UIColor(hex: 0x000000, alpha: 0.4).cgColor
-        textField.attributedPlaceholder = NSAttributedString(string: "Email",  attributes: [NSAttributedString.Key.foregroundColor: colorPlac])
+        textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
+        textField.attributedPlaceholder = NSAttributedString(string: "Email",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
         textField.leftViewMode = .always
+        
         return textField
     }()
     
     private let passwordTextField: UITextField = {
         let textField = UITextField()
-        let colorPlac = UIColor(hex: 0xFFFFFF, alpha: 0.3)
+        let attributes = [NSAttributedString.Key.foregroundColor: UIColor.ApplicationСolor.textInactiveState]
         
         textField.textColor = .white
         textField.isSecureTextEntry = true
         textField.autocorrectionType = .no
         textField.textContentType = .oneTimeCode
-        textField.attributedPlaceholder = NSAttributedString(string: "Password",  attributes: [NSAttributedString.Key.foregroundColor: colorPlac])
+        textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
+        textField.attributedPlaceholder = NSAttributedString(string: "Password",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
         textField.leftViewMode = .always
         return textField
@@ -88,10 +93,11 @@ final class LoginView: UIViewController {
     private let loginRegisterButtonView: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Sign In", for: .normal)
-        button.setTitleColor(UIColor(hex: 0x2D3540), for: .normal)
+        button.setTitleColor(UIColor.ApplicationСolor.textButton, for: .normal)
         button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.backgroundColor = UIColor(hex: 0xA0A4D9)
         button.layer.cornerRadius = 20
+        button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(handleLoginRegister), for: .touchUpInside)
         return button
     }()
@@ -100,7 +106,6 @@ final class LoginView: UIViewController {
     
     private let loginRegisterSegmentedControl: UISegmentedControl = {
         let segmentControl = UISegmentedControl(items: ["Login", "Register"])
-        segmentControl.tintColor = UIColor(hex: 0x000000, alpha: 0.4)
         segmentControl.selectedSegmentIndex = 0
         segmentControl.addTarget(self, action: #selector(handleLoginRegisterChange), for: .valueChanged)
         return segmentControl
@@ -110,7 +115,7 @@ final class LoginView: UIViewController {
     
     private let iconImageView: UIImageView = {
         let icon = UIImageView()
-        icon.image = UIImage(named: "AppIcon")
+        icon.image = UIImage(named: "icon")
         icon.contentMode = .scaleAspectFill
         return icon
     }()
@@ -132,7 +137,7 @@ final class LoginView: UIViewController {
         scrollView.addSubview(contentView)
         contentView.addGestureRecognizer(tapGesture)
         
-        presenter = LoginPresenter(view: self, email: nil, password: nil)
+        presenter = LoginPresenter(view: self)
         presenter?.authorityCheck()
         
         [inputsContainerView, loginRegisterButtonView, iconImageView, loginRegisterSegmentedControl].forEach {
@@ -147,13 +152,17 @@ final class LoginView: UIViewController {
         setupLoginRegisterSegmentedControl()
         registerForKeyboardNotifications()
         
-        view.backgroundColor = UIColor(hex: 0x2D3540)
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = UIColor.ApplicationСolor.background
     }
     
-    // MARK: - Deinitialization
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        loginRegisterButtonView.applyGradient(colours: UIColor.ApplicationСolor.brandButton)
+    }
     
-    deinit {
-        removeKeyboardNotifications()
+    override func viewDidDisappear(_ animated: Bool) {
+        NotificationCenter.default.removeObserver(self)
     }
     
     // MARK: - Private Methods
@@ -161,10 +170,10 @@ final class LoginView: UIViewController {
     // Layout
     
     private func setupStackViewConstraints() {
-        scrollView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        scrollView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
-        scrollView.widthAnchor.constraint(equalTo: self.view.widthAnchor).isActive = true
-        scrollView.heightAnchor.constraint(equalTo: self.view.heightAnchor).isActive = true
+        scrollView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        scrollView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        scrollView.widthAnchor.constraint(equalTo: view.widthAnchor).isActive = true
+        scrollView.heightAnchor.constraint(equalTo: view.heightAnchor).isActive = true
         
         contentView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor).isActive = true
         contentView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor).isActive = true
@@ -175,7 +184,7 @@ final class LoginView: UIViewController {
     private func setupInputContainerViewConstraints() {
         inputsContainerView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         inputsContainerView.topAnchor.constraint(equalTo: contentView.centerYAnchor, constant: -30).isActive = true
-        inputsContainerView.widthAnchor.constraint(equalTo: contentView.widthAnchor, constant: -24).isActive = true
+        inputsContainerView.widthAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.widthAnchor, constant: -24).isActive = true
         inputsContainerViewHeightAnchor = inputsContainerView.heightAnchor.constraint(equalToConstant: 100)
         inputsContainerViewHeightAnchor?.isActive = true
         
@@ -186,20 +195,20 @@ final class LoginView: UIViewController {
         }
         
         nameTextField.topAnchor.constraint(equalTo: inputsContainerView.topAnchor).isActive = true
-        nameTextField.leftAnchor.constraint(equalTo: inputsContainerView.leftAnchor).isActive = true
-        nameTextField.rightAnchor.constraint(equalTo: inputsContainerView.rightAnchor).isActive = true
+        nameTextField.leadingAnchor.constraint(equalTo: inputsContainerView.leadingAnchor).isActive = true
+        nameTextField.trailingAnchor.constraint(equalTo: inputsContainerView.trailingAnchor).isActive = true
         nameTextFieldHeightAnchor = nameTextField.heightAnchor.constraint(equalToConstant: 0)
         nameTextFieldHeightAnchor?.isActive = true
         
         emailTextField.topAnchor.constraint(equalTo: nameTextField.bottomAnchor).isActive = true
-        emailTextField.leftAnchor.constraint(equalTo: inputsContainerView.leftAnchor).isActive = true
-        emailTextField.rightAnchor.constraint(equalTo: inputsContainerView.rightAnchor).isActive = true
+        emailTextField.leadingAnchor.constraint(equalTo: inputsContainerView.leadingAnchor).isActive = true
+        emailTextField.trailingAnchor.constraint(equalTo: inputsContainerView.trailingAnchor).isActive = true
         emailTextFieldHeightAnchor = emailTextField.heightAnchor.constraint(equalTo: inputsContainerView.heightAnchor, multiplier: 1 / 2)
         emailTextFieldHeightAnchor?.isActive = true
         
         passwordTextField.topAnchor.constraint(equalTo: emailTextField.bottomAnchor).isActive = true
-        passwordTextField.leftAnchor.constraint(equalTo: inputsContainerView.leftAnchor).isActive = true
-        passwordTextField.rightAnchor.constraint(equalTo: inputsContainerView.rightAnchor).isActive = true
+        passwordTextField.leadingAnchor.constraint(equalTo: inputsContainerView.leadingAnchor).isActive = true
+        passwordTextField.trailingAnchor.constraint(equalTo: inputsContainerView.trailingAnchor).isActive = true
         passwordTextField.heightAnchor.constraint(equalTo: emailTextField.heightAnchor).isActive = true
     }
     
@@ -221,8 +230,8 @@ final class LoginView: UIViewController {
     private func setupIconImageViewConstraints() {
         iconImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
         iconImageView.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 30).isActive = true
-        iconImageView.widthAnchor.constraint(equalToConstant: 70).isActive = true
-        iconImageView.heightAnchor.constraint(equalToConstant: 70).isActive = true
+        iconImageView.widthAnchor.constraint(equalToConstant: 76).isActive = true
+        iconImageView.heightAnchor.constraint(equalToConstant: 76).isActive = true
     }
     
     // action when the keyboard appears and disappears
@@ -232,17 +241,11 @@ final class LoginView: UIViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(kbWillHide), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
-    private func removeKeyboardNotifications() {
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-    
-    // MARK: -
-    
     @objc private func kbWillShow(_ notification: Notification) {
         let userInfo = notification.userInfo
 
-        guard let kbFrameSize = (userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue else {
+        guard let kbFrameSize = userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+        let kbDuration = userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
             return
         }
          
@@ -250,16 +253,25 @@ final class LoginView: UIViewController {
         
         if result < 0 {
             let shift = iconImageView.frame.height + iconImageView.frame.origin.y + 1
-            scrollView.setContentOffset(CGPoint(x: 0, y: shift), animated: false)
+            
+            UIView.animate(withDuration: kbDuration) {
+                self.scrollView.setContentOffset(CGPoint(x: 0, y: shift), animated: false)
+            }
         }
     }
 
-    @objc private func kbWillHide() {
-        scrollView.setContentOffset(CGPoint.zero, animated: true)
+    @objc private func kbWillHide(_ notification: Notification) {
+        guard let userInfo = notification.userInfo, let kbDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+            return
+        }
+        
+        UIView.animate(withDuration: kbDuration) {
+            self.scrollView.setContentOffset(CGPoint.zero, animated: true)
+        }
     }
     
     @objc private func tapPiece(_ sender: UITapGestureRecognizer) {
-        self.view.endEditing(true)
+        view.endEditing(true)
     }
     
     // change menu
@@ -294,6 +306,10 @@ extension LoginView: LoginScreenView {
     // MARK: - Public Method
     
     func processingResult(error: String?) {
+        [emailTextField, passwordTextField, nameTextField].forEach() {
+            $0.text = nil
+        }
+        
         if error == nil {
             let tabBar = TabBar()
             tabBar.modalTransitionStyle = .crossDissolve
@@ -301,7 +317,7 @@ extension LoginView: LoginScreenView {
             present(tabBar, animated: true, completion: nil)
         } else {
             let alert = UIAlertController(title: "Error", message: error, preferredStyle: .alert)
-            self.present(alert, animated: true, completion: nil)
+            present(alert, animated: true, completion: nil)
             DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 1.2) {
               alert.dismiss(animated: true, completion: nil)
             }
@@ -316,8 +332,7 @@ extension LoginView: LoginScreenView {
             return
         }
         
-        presenter = LoginPresenter(view: self, email: emailTextField.text, password: passwordTextField.text)
-        self.presenter?.processingDataLogin()
+        presenter?.processingDataLogin(email: emailTextField.text, password: passwordTextField.text)
     }
     
     private func handleRegister() {
@@ -326,8 +341,13 @@ extension LoginView: LoginScreenView {
             return
         }
         
-        presenter = LoginPresenter(view: self, name: nameTextField.text, email: emailTextField.text, password: passwordTextField.text)
-        self.presenter?.processingDataRegistration()
+        let characterSet = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ ")
+        guard nameTextField.text?.rangeOfCharacter(from: characterSet.inverted) == nil else {
+            processingResult(error: "Full name should only consist of latin letters")
+            return
+        }
+        
+        presenter?.processingDataRegistration(name: nameTextField.text, email: emailTextField.text, password: passwordTextField.text)
     }
     
     @objc private func handleLoginRegister() {

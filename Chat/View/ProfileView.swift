@@ -9,7 +9,7 @@
 import UIKit
 import Firebase
 
-class ProfileView: UIViewController {
+final class ProfileView: UIViewController {
     
     // MARK: - Private Properties
     
@@ -31,7 +31,7 @@ class ProfileView: UIViewController {
     private let nameLabel: UILabel = {
         let name = UILabel()
         name.font =  UIFont.boldSystemFont(ofSize: 25.0)
-        name.textColor = UIColor(hex: 0xFFFFFF, alpha: 1)
+        name.textColor = UIColor.ApplicationСolor.textActiveState
         name.textAlignment = .center
         return name
     }()
@@ -41,9 +41,7 @@ class ProfileView: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = UIColor(hex: 0x2D3540)
-        navigationController?.navigationBar.barStyle = .black
-        tabBarController?.tabBar.barStyle = .black
+        view.backgroundColor = UIColor.ApplicationСolor.background
         
         let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(didTapImageView))
         avatarImageView.isUserInteractionEnabled = true

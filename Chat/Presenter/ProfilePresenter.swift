@@ -20,7 +20,7 @@ protocol ProfileScreenPresenter {
     func toGetData()
 }
 
-class ProfilePresenter: ProfileScreenPresenter {
+final class ProfilePresenter: ProfileScreenPresenter {
 
     // MARK: - Private Properties
     

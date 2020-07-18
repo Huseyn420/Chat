@@ -14,34 +14,27 @@ protocol LoginScreenView: class {
 }
 
 protocol LoginScreenPresenter {
-    init(view: LoginScreenView, name: String?, email: String?, password: String?)
-    func processingDataRegistration()
-    func processingDataLogin()
+    init(view: LoginScreenView)
+    func processingDataRegistration(name: String?, email: String?, password: String?)
+    func processingDataLogin(email: String?, password: String?)
     func authorityCheck()
 }
 
 final class LoginPresenter: LoginScreenPresenter {
     
     // MARK: - Private Properties
-    
-    private let name: String?
-    private let email: String?
-    private let password: String?
-    
+
     unowned private let view: LoginScreenView
     
     // MARK: - Initialization
     
-    required init(view: LoginScreenView, name: String? = nil, email: String?, password: String?) {
+    required init(view: LoginScreenView) {
         self.view = view
-        self.name = name
-        self.email = email
-        self.password = password
     }
   
     // MARK: - Public Method
     
-    func processingDataRegistration() {
+    func processingDataRegistration(name: String?, email: String?, password: String?) {
         guard let name = name, let email = email, let password = password else {
             self.view.processingResult(error: "Not all fields are filled")
             return
@@ -68,7 +61,7 @@ final class LoginPresenter: LoginScreenPresenter {
         }
     }
     
-    func processingDataLogin() {
+    func processingDataLogin(email: String?, password: String?) {
         guard let email = email, let password = password else {
             self.view.processingResult(error: "Not all fields are filled")
             return

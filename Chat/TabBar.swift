@@ -8,7 +8,7 @@
 
 import UIKit
 
-class TabBar: UITabBarController {
+final class TabBar: UITabBarController {
 
     // MARK: - Public Properties
     

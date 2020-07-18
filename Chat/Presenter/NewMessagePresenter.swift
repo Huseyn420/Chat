@@ -10,7 +10,7 @@ import Foundation
 import Firebase
 
 protocol NewMessageScreenView: class {
-    func openNewCorrespondence(name: String, email: String, url: String)
+    func receiveUserData(name: String, email: String, url: String, id: String)
 }
 
 protocol NewMessageScreenPresenter {
@@ -34,7 +34,7 @@ final class NewMessangePresenter: NewMessageScreenPresenter {
     func fetchDataUser() {
         Database.database().reference().child("users").queryOrdered(byChild: "name").observe(.childAdded, with: { [weak self] (snapshot) in
             let user = User(snapshot: snapshot)
-            self?.view.openNewCorrespondence(name: user.name, email: user.email, url: user.urlImage)
+            self?.view.receiveUserData(name: user.name, email: user.email, url: user.urlImage, id: snapshot.key)
         }, withCancel: nil)
     }
 }
