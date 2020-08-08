@@ -20,6 +20,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         
         window = UIWindow(frame: windowScene.coordinateSpace.bounds)
+        window?.overrideUserInterfaceStyle = .dark
+        window?.tintColor = .green
         window?.windowScene = windowScene
         window?.rootViewController = LoginView()
         window?.makeKeyAndVisible()

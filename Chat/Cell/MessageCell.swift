@@ -28,14 +28,22 @@ final class MessageCell: UICollectionViewCell {
         return label
     }()
     
+    let timeLabel: UILabel = {
+        let label = UILabel()
+        label.textColor = .white
+        label.font = UIFont.systemFont(ofSize: 10)
+        label.textAlignment = .right
+        return label
+    }()
+    
     let bubbleView: UIView = {
         let view = UIView()
-        view.layer.cornerRadius = 13
+        view.layer.cornerRadius = 15
         view.layer.masksToBounds = true
         return view
     }()
     
-    // MARK: - Cycle Trip
+    // MARK: - Lifecycle
     
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -49,12 +57,13 @@ final class MessageCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         
-        [bubbleView, textLabel].forEach() {
+        [bubbleView, textLabel, timeLabel].forEach() {
             $0.translatesAutoresizingMaskIntoConstraints = false
         }
         
         addSubview(bubbleView)
         bubbleView.addSubview(textLabel)
+        bubbleView.addSubview(timeLabel)
         constraintMessage()
     }
     
@@ -62,7 +71,7 @@ final class MessageCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Public Properties
+    // MARK: - Public Method
     
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -75,14 +84,13 @@ final class MessageCell: UICollectionViewCell {
         if gradientColors == UIColor.ApplicationСolor.receivedMessage {
             bubleTrailingAnchor?.isActive = false
             bubleLeadingAnchor?.isActive = true
-        } else {
-            
         }
     }
     
-    // MARK: - Private Properties
+    // MARK: - Private Method
     
     private func constraintMessage() {
+        
         bubleLeadingAnchor = bubbleView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 8)
         bubleLeadingAnchor?.isActive = false
         
@@ -93,11 +101,16 @@ final class MessageCell: UICollectionViewCell {
         bubbleWidthAnchor?.isActive = true
         
         bubbleView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-        bubbleView.heightAnchor.constraint(equalTo: heightAnchor).isActive = true
+        bubbleView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
         
-        textLabel.centerYAnchor.constraint(equalTo: bubbleView.centerYAnchor).isActive = true
+        textLabel.centerYAnchor.constraint(equalTo: bubbleView.centerYAnchor, constant: -5).isActive = true
         textLabel.centerXAnchor.constraint(equalTo: bubbleView.centerXAnchor).isActive = true
         textLabel.topAnchor.constraint(equalTo: bubbleView.topAnchor, constant: 5).isActive = true
         textLabel.leadingAnchor.constraint(equalTo: bubbleView.safeAreaLayoutGuide.leadingAnchor, constant: 10).isActive = true
+        
+        timeLabel.centerXAnchor.constraint(equalTo: bubbleView.centerXAnchor).isActive = true
+        timeLabel.topAnchor.constraint(equalTo: textLabel.bottomAnchor, constant: 2).isActive = true
+        timeLabel.bottomAnchor.constraint(equalTo: bubbleView.bottomAnchor, constant: -5).isActive = true
+        timeLabel.trailingAnchor.constraint(equalTo: bubbleView.trailingAnchor, constant: -10).isActive = true
     }
 }

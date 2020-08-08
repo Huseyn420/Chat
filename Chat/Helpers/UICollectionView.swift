@@ -15,7 +15,7 @@ extension UICollectionView {
     
     // MARK: - Public Method
     
-    func scrollToLast() {
+    func scrollToLast(animated: Bool = false) {
         guard numberOfSections > 0 else {
             return
         }
@@ -28,6 +28,6 @@ extension UICollectionView {
 
         let lastItemIndexPath = IndexPath(item: numberOfItems(inSection: lastSection) - 1,
                                           section: lastSection)
-        scrollToItem(at: lastItemIndexPath, at: .bottom, animated: true)
+        scrollToItem(at: lastItemIndexPath, at: .bottom, animated: animated)
     }
 }

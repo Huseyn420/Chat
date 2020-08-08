@@ -7,17 +7,25 @@
 //
 
 import UIKit
-import Firebase
+import FirebaseAuth
+import FirebaseDatabase
+import FirebaseStorage
 
 protocol ProfileScreenView: class {
     func processingResult(name: String, email: String, url: String)
+    func alertAboutError(message: String)
+    func reloadEmailLabel(email: String)
     func logout()
 }
 
 protocol ProfileScreenPresenter {
     init(view: ProfileScreenView)
+    func updateName(newName: String)
     func updateAvatar(image: UIImage?)
+    func deleteAvatar()
     func toGetData()
+    func updateEmail(newEmail: String, password: String)
+    func updatePassword(oldPassword: String, newPassword: String)
 }
 
 final class ProfilePresenter: ProfileScreenPresenter {
@@ -36,7 +44,7 @@ final class ProfilePresenter: ProfileScreenPresenter {
     
     func toGetData() {
         guard let uid = Auth.auth().currentUser?.uid else {
-            self.view.logout()
+            view.logout()
             return
         }
         
@@ -44,6 +52,63 @@ final class ProfilePresenter: ProfileScreenPresenter {
             let user = User(snapshot: snapshot)
             self?.view.processingResult(name: user.name, email: user.email, url: user.urlImage)
         }
+    }
+    
+    func updateEmail(newEmail: String, password: String) {
+        guard let email = Auth.auth().currentUser?.email, let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        let credential = EmailAuthProvider.credential(withEmail: email, password: password)
+        Auth.auth().currentUser?.reauthenticate(with: credential, completion: { [weak self] (_, error) in
+            if let error = error {
+                self?.view.alertAboutError(message: error.localizedDescription)
+                return
+            }
+            
+            Auth.auth().currentUser?.updateEmail(to: newEmail, completion: { [weak self] (error) in
+                if let error = error {
+                    self?.view.alertAboutError(message: error.localizedDescription)
+                    return
+                }
+                
+                Database.database().reference().child("users").child(uid).updateChildValues(["email": newEmail] as [String : Any])
+                self?.view.reloadEmailLabel(email: newEmail)
+            })
+        })
+    }
+    
+    func updatePassword(oldPassword: String, newPassword: String) {
+        guard let email = Auth.auth().currentUser?.email else {
+            return
+        }
+        
+        let credential = EmailAuthProvider.credential(withEmail: email, password: oldPassword)
+        Auth.auth().currentUser?.reauthenticate(with: credential, completion: { [weak self] (authResult, error) in
+            if let error = error {
+                self?.view.alertAboutError(message: error.localizedDescription)
+                return
+            }
+            
+            guard let user = authResult?.user else {
+                return
+            }
+            
+            user.updatePassword(to: newPassword, completion: { (error) in
+                if let error = error {
+                    self?.view.alertAboutError(message: error.localizedDescription)
+                    return
+                }
+            })
+        })
+    }
+    
+    func updateName(newName: String) {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        Database.database().reference().child("users").child(uid).updateChildValues(["name": newName] as [String : Any])
     }
     
     func updateAvatar(image: UIImage?) {
@@ -74,5 +139,13 @@ final class ProfilePresenter: ProfileScreenPresenter {
                 }
             }
         }
+    }
+    
+    func deleteAvatar() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        Database.database().reference().child("users").child(uid).child("url").removeValue()
     }
 }

@@ -7,7 +7,9 @@
 //
 
 import Foundation
-import Firebase
+import FirebaseAuth
+import FirebaseDatabase
+import LocalAuthentication
 
 protocol LoginScreenView: class {
     func processingResult(error: String?)
@@ -80,8 +82,34 @@ final class LoginPresenter: LoginScreenPresenter {
     func authorityCheck() {
         Auth.auth().addStateDidChangeListener { [weak self] (auth, user) in
             if user != nil {
+                let addVerification = UserDefaults.standard.bool(forKey: "additionalVerification")
+                if addVerification == true {
+                    self?.extraProtection()
+                    return
+                }
+                
                 self?.view.processingResult(error: nil)
             }
+        }
+    }
+    
+    // MARK: - Private Method
+    
+    private func extraProtection() {
+        let context = LAContext()
+        var error: NSError?
+        
+        if context.canEvaluatePolicy(.deviceOwnerAuthentication, error: &error) {
+            let reason = "Authentication"
+            context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { success, authenticationError in
+                DispatchQueue.main.async {
+                    if success {
+                        self.view.processingResult(error: nil)
+                    }
+                }
+            }
+        } else {
+            self.view.processingResult(error: nil)
         }
     }
 }

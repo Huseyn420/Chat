@@ -15,9 +15,9 @@ final class CorrespondenceCell: UITableViewCell {
     let avatarImageView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "Avatar")
-        imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.layer.cornerRadius = 20
         imageView.layer.borderWidth = 0.1
+        imageView.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
         imageView.layer.masksToBounds = true
         imageView.contentMode = .scaleAspectFill
         return imageView
@@ -25,14 +25,13 @@ final class CorrespondenceCell: UITableViewCell {
     
     let timeLabel: UILabel = {
         let label = UILabel()
-        label.translatesAutoresizingMaskIntoConstraints = false
         label.textColor = UIColor.ApplicationСolor.additionalText
         label.font = UIFont.systemFont(ofSize: 12)
         label.textAlignment = .right
         return label
     }()
     
-    // MARK: - View Lifecycle
+    // MARK: - Lifecycle
     
     override func prepareForReuse() {
         super.prepareForReuse()
@@ -48,7 +47,7 @@ final class CorrespondenceCell: UITableViewCell {
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .subtitle, reuseIdentifier: reuseIdentifier)
         
-        backgroundColor = UIColor.ApplicationСolor.background
+        backgroundColor = UIColor.ApplicationСolor.interfaceUnit
         
         textLabel?.textColor = UIColor.ApplicationСolor.textActiveState
         textLabel?.font = UIFont.boldSystemFont(ofSize: 20)
@@ -56,6 +55,7 @@ final class CorrespondenceCell: UITableViewCell {
         detailTextLabel?.font = UIFont.systemFont(ofSize: 15)
         
         [avatarImageView, timeLabel].forEach() {
+            $0.translatesAutoresizingMaskIntoConstraints = false
             contentView.addSubview($0)
         }
     }
@@ -64,7 +64,7 @@ final class CorrespondenceCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    // MARK: - Public Properties
+    // MARK: - Public Method
     
     override func layoutSubviews() {
         super.layoutSubviews()

@@ -7,11 +7,7 @@
 //
 
 import Foundation
-import Firebase
-
-// MARK: - Private Properties
-
-fileprivate let baseUrlImage = "https://firebasestorage.googleapis.com/v0/b/chat-40d7d.appspot.com/o/noavatar.jpg?alt=media&token=b57df647-349b-4511-b950-606bbc1fabf4"
+import FirebaseDatabase
 
 struct User {
     
@@ -23,7 +19,7 @@ struct User {
     
     // MARK: - Initialization
     
-    init(name: String, email: String, urlImage: String = baseUrlImage) {
+    init(name: String, email: String, urlImage: String = "") {
         self.name = name
         self.email = email
         self.urlImage = urlImage

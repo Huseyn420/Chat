@@ -8,7 +8,8 @@
 
 import Foundation
 import UIKit
-import Firebase
+import FirebaseAuth
+import FirebaseDatabase
 
 final class ChatView: UICollectionViewController {
     
@@ -31,8 +32,13 @@ final class ChatView: UICollectionViewController {
     
     private var containerViewBottomAnchor = NSLayoutConstraint()
     
-    private var data: [(text: String, time: Int, sender: String)] = []
-    private let identifier = "collectionViewCell"
+    private var scrollWithAnimation = false
+    
+    private var date: [String] = []
+    private var data: [String: [(text: String, time: String, sender: String)]] = [:]
+    
+    private let identifier = "chatCollectionViewCell"
+    private let headerIdentifier = "chatHeader"
     
     private let containerView: UIView = {
         let view = UIView()
@@ -82,7 +88,7 @@ final class ChatView: UICollectionViewController {
         return view
     }()
     
-    // MARK: - Life Cycle
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -92,8 +98,9 @@ final class ChatView: UICollectionViewController {
         collectionView.backgroundColor = UIColor.ApplicationСolor.background
         collectionView.register(MessageCell.self, forCellWithReuseIdentifier: identifier)
         collectionView.alwaysBounceVertical = true
-        collectionView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 70, right: 0)
-        collectionView.keyboardDismissMode = .interactive
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
+        collectionView.scrollIndicatorInsets = UIEdgeInsets(top: 0, left: 0, bottom: 70, right: 0)
+        collectionView.register(ChatHeader.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: headerIdentifier)
         
         [containerView, separator, bottomSafeArea].forEach {
             $0.translatesAutoresizingMaskIntoConstraints = false
@@ -120,26 +127,43 @@ final class ChatView: UICollectionViewController {
     
     // MARK: - Public Method
     
-    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+        return CGSize(width: collectionView.frame.size.width, height: 30.0)
+    }
+    
+    override func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
+        guard let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: headerIdentifier, for: indexPath) as? ChatHeader else {
+            fatalError("Unexpected element kind")
+        }
+        
+        headerView.titleLabel.text = date[indexPath.section]
+        return headerView
+    }
+    
+    override func numberOfSections(in collectionView: UICollectionView) -> Int {
         return data.count
     }
     
+    override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return data[date[section]]?.count ?? 0
+    }
+    
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath) as! MessageCell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: identifier, for: indexPath) as? MessageCell,
+        let section = data[date[indexPath.section]] else {
+            fatalError("Cell should be not nil")
+        }
 
-        cell.bubbleWidthAnchor?.constant = estimateFrameForText(data[indexPath.row].text).width + 22
-        cell.textLabel.text = data[indexPath.row].text
+        cell.bubbleWidthAnchor?.constant = estimateFrameForText(section[indexPath.row].text).width + 64
+        cell.textLabel.text = section[indexPath.row].text
+        cell.timeLabel.text = section[indexPath.row].time
         cell.gradientColors = UIColor.ApplicationСolor.sentMessage
         
-        if data[indexPath.row].sender == interlocutorId {
+        if section[indexPath.row].sender == interlocutorId {
             cell.gradientColors = UIColor.ApplicationСolor.receivedMessage
         }
         
         return cell
-    }
-    
-    override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        collectionView.collectionViewLayout.invalidateLayout()
     }
     
     // MARK: - Private Method
@@ -195,6 +219,7 @@ final class ChatView: UICollectionViewController {
         }
         
         containerViewBottomAnchor.constant = -kbFrameSize.height + additionalOffset
+        collectionView.contentOffset.y += kbFrameSize.height
         
         UIView.animate(withDuration: kbDuration) {
             self.view.layoutIfNeeded()
@@ -202,11 +227,18 @@ final class ChatView: UICollectionViewController {
     }
 
     @objc private func kbWillHide(_ notification: Notification) {
-        guard let userInfo = notification.userInfo, let kbDuration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
+        let userInfo = notification.userInfo
+        
+        guard let kbFrameSize = userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect,
+        let kbDuration = userInfo?[UIResponder.keyboardAnimationDurationUserInfoKey] as? Double else {
             return
         }
         
-        self.containerViewBottomAnchor.constant = 0
+        containerViewBottomAnchor.constant = 0
+        if collectionView.contentOffset.y - kbFrameSize.height >= 0 {
+            collectionView.contentOffset.y -= kbFrameSize.height
+        }
+        
         UIView.animate(withDuration: kbDuration) {
             self.view.layoutIfNeeded()
         }
@@ -222,9 +254,13 @@ final class ChatView: UICollectionViewController {
 extension ChatView: UICollectionViewDelegateFlowLayout {
     
     // MARK: - Public Method
-    
+        
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let text = data[indexPath.row].text
+        guard let section = data[date[indexPath.section]] else {
+            return CGSize(width: 0, height: 0)
+        }
+        
+        let text = section[indexPath.row].text
         let height = estimateFrameForText(text).height + 20
         return CGSize(width: view.frame.width, height: height)
     }
@@ -245,10 +281,30 @@ extension ChatView: ChatScreenView {
     // MARK: - Public Method
     
     func messageOutput(text: String, time: Int, sender: String) {
-        data.append((text, time, sender))
+        let dateTime = Date(timeIntervalSince1970: Double(time))
+        let dateFormatter = DateFormatter()
+        let timeFormatter = DateFormatter()
+        var dateString = String()
+        var timeString = String()
+        
+        timeFormatter.timeStyle = .short
+        dateFormatter.dateStyle = .medium
+        
+        dateString = dateFormatter.string(from: dateTime)
+        timeString = timeFormatter.string(from: dateTime)
+        
+        if var values = data[dateString] {
+            values.append((text, timeString, sender))
+            data[dateString] = values
+        } else {
+            data[dateString] = [(text, timeString, sender)]
+            date.append(dateString)
+        }
         
         DispatchQueue.main.async {
             self.collectionView.reloadData()
+            self.collectionView.scrollToLast(animated: self.scrollWithAnimation)
+            self.scrollWithAnimation = false
         }
     }
     
@@ -269,6 +325,7 @@ extension ChatView: ChatScreenView {
             return
         }
         
+        scrollWithAnimation = true
         messageTextField.text = nil
         presenter?.sendingMessages(text: messageText)
     }
@@ -301,6 +358,11 @@ extension ChatView: UINavigationControllerDelegate {
     // MARK: - Private Method
 
     @objc private func goBack() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        Database.database().reference().child("messages").child(uid).child(interlocutorId).removeAllObservers()
         navigationController?.popToRootViewController(animated: true)
     }
 }

@@ -46,8 +46,9 @@ final class LoginView: UIViewController {
         let attributes = [NSAttributedString.Key.foregroundColor: UIColor.ApplicationСolor.textInactiveState]
         
         textField.textColor = .white
+        textField.returnKeyType = .next
         textField.autocorrectionType = .no
-        textField.textContentType = .oneTimeCode
+        textField.textContentType = .name
         textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
         textField.attributedPlaceholder = NSAttributedString(string: "Name",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
@@ -62,9 +63,11 @@ final class LoginView: UIViewController {
         
         textField.textColor = .white
         textField.layer.borderWidth = 0.5
+        textField.returnKeyType = .next
         textField.autocorrectionType = .no
+        textField.keyboardType = .emailAddress
         textField.autocapitalizationType = .none
-        textField.textContentType = .oneTimeCode
+        textField.textContentType = .emailAddress
         textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
         textField.attributedPlaceholder = NSAttributedString(string: "Email",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
@@ -80,7 +83,7 @@ final class LoginView: UIViewController {
         textField.textColor = .white
         textField.isSecureTextEntry = true
         textField.autocorrectionType = .no
-        textField.textContentType = .oneTimeCode
+        textField.textContentType = .password
         textField.layer.borderColor = UIColor.ApplicationСolor.border.cgColor
         textField.attributedPlaceholder = NSAttributedString(string: "Password",  attributes: attributes)
         textField.leftView = UIView(frame: CGRect(x: 0, y: 0, width: 15, height: textField.frame.height))
@@ -152,7 +155,6 @@ final class LoginView: UIViewController {
         setupLoginRegisterSegmentedControl()
         registerForKeyboardNotifications()
         
-        overrideUserInterfaceStyle = .dark
         view.backgroundColor = UIColor.ApplicationСolor.background
     }
     
@@ -229,7 +231,7 @@ final class LoginView: UIViewController {
     
     private func setupIconImageViewConstraints() {
         iconImageView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor).isActive = true
-        iconImageView.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 30).isActive = true
+        iconImageView.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor, constant: 40).isActive = true
         iconImageView.widthAnchor.constraint(equalToConstant: 76).isActive = true
         iconImageView.heightAnchor.constraint(equalToConstant: 76).isActive = true
     }
@@ -252,7 +254,8 @@ final class LoginView: UIViewController {
         let result = kbFrameSize.origin.y - loginRegisterButtonView.frame.origin.y - loginRegisterButtonView.frame.height - 10
         
         if result < 0 {
-            let shift = iconImageView.frame.height + iconImageView.frame.origin.y + 1
+            let shift = (iconImageView.frame.origin.y - 20 < abs(result)) ? iconImageView.frame.height + iconImageView.frame.origin.y + 35
+                                                                          : abs(result) + 2
             
             UIView.animate(withDuration: kbDuration) {
                 self.scrollView.setContentOffset(CGPoint(x: 0, y: shift), animated: false)
@@ -293,6 +296,7 @@ final class LoginView: UIViewController {
             emailTextFieldHeightAnchor = emailTextField.heightAnchor.constraint(equalTo: inputsContainerView.heightAnchor, multiplier: 1 / 3)
         }
         
+        view.endEditing(true)
         [inputsContainerViewHeightAnchor, nameTextFieldHeightAnchor, emailTextFieldHeightAnchor].forEach {
             $0?.isActive = true
         }
@@ -312,6 +316,7 @@ extension LoginView: LoginScreenView {
         
         if error == nil {
             let tabBar = TabBar()
+            view.endEditing(true)
             tabBar.modalTransitionStyle = .crossDissolve
             tabBar.modalPresentationStyle = .overCurrentContext
             present(tabBar, animated: true, completion: nil)
@@ -327,6 +332,8 @@ extension LoginView: LoginScreenView {
     // MARK: - Private Method
     
     private func handleLogin() {
+        emailTextField.text = emailTextField.text?.trimmingCharacters(in: NSCharacterSet.whitespaces)
+        
         guard emailTextField.text != "", passwordTextField.text != "" else {
             processingResult(error: "Not all fields are filled")
             return
@@ -336,6 +343,9 @@ extension LoginView: LoginScreenView {
     }
     
     private func handleRegister() {
+        nameTextField.text = nameTextField.text?.trimmingCharacters(in: NSCharacterSet.whitespaces)
+        emailTextField.text = emailTextField.text?.trimmingCharacters(in: NSCharacterSet.whitespaces)
+        
         guard emailTextField.text != "", passwordTextField.text != "", nameTextField.text != "" else {
             processingResult(error: "Not all fields are filled")
             return

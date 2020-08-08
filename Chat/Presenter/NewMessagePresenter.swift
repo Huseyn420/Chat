@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Firebase
+import FirebaseDatabase
 
 protocol NewMessageScreenView: class {
     func receiveUserData(name: String, email: String, url: String, id: String)

@@ -1,9 +1,9 @@
 //
-//  CustomColor.swift
-//  Cycle Trip
+//  UIColor.swift
+//  Chat
 //
-//  Created by Гусейн Агаев on 20.04.2020.
-//  Copyright © 2020 Прогеры. All rights reserved.
+//  Created by Гусейн Агаев on 02.07.2020.
+//  Copyright © 2020 Гусейн Агаев. All rights reserved.
 //
 
 import UIKit
@@ -28,15 +28,16 @@ extension UIColor {
         
         static var textButton: UIColor { return UIColor(hex: 0x2D3540) }
         static var messageText: UIColor { return UIColor(hex: 0x000000) }
-        static var additionalText: UIColor { return UIColor(hex: 0xD7D7D7) }
+        static var additionalText: UIColor { return UIColor(hex: 0xDBDBDB) }
         static var textActiveState: UIColor { return UIColor(hex: 0xFFFFFF) }
         static var textInactiveState: UIColor { return UIColor(hex: 0xFFFFFF, alpha: 0.3) }
         
         static var separator: UIColor { return UIColor(hex: 0x000000) }
-        static var border: UIColor { return UIColor(hex: 0xFFFFFF, alpha: 0.4) }
+        static var border: UIColor { return UIColor(hex: 0x000000, alpha: 0.8) }
         
         static var sentMessage: [UIColor] { return [UIColor(hex: 0xDFEC51), UIColor(hex: 0x73AA0A)] }
         static var receivedMessage: [UIColor] { return [UIColor(hex: 0xB3B3B3), UIColor(hex: 0x909090)] }
         static var brandButton: [UIColor] { return [UIColor(hex: 0x1DE5E2), UIColor(hex: 0xB588F7)] }
     }
 }
+

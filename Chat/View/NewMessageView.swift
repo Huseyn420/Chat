@@ -17,7 +17,7 @@ final class NewMessageView: UITableViewController {
     private var sectionName: [String] = []
     private var data: [String: [(name: String, email: String, url: String, id: String)]] = [:]
     
-    private let identifier = "tableViewCell"
+    private let identifier = "newMessageViewCell"
 
     // MARK: - Lifecycle
     
@@ -26,10 +26,12 @@ final class NewMessageView: UITableViewController {
         
         navigationController?.delegate = self
         
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.tableFooterView = UIView()
         tableView.separatorColor = UIColor.ApplicationСolor.separator
         tableView.backgroundColor = UIColor.ApplicationСolor.background
         tableView.register(CorrespondenceCell.self, forCellReuseIdentifier: identifier)
+        tableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
         
         presenter = NewMessangePresenter(view: self)
         presenter?.fetchDataUser()
@@ -55,15 +57,15 @@ final class NewMessageView: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as! CorrespondenceCell
-        
-        guard let section = data[sectionName[indexPath.section]] else {
-            return cell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as? CorrespondenceCell,
+        let section = data[sectionName[indexPath.section]]  else {
+            fatalError("Cell should be not nil")
         }
         
         cell.textLabel?.text = section[indexPath.row].name
         cell.detailTextLabel?.text = section[indexPath.row].email
         cell.avatarImageView.loadImageUsingCache(urlString: section[indexPath.row].url)
+        cell.accessoryType = .disclosureIndicator
         cell.separatorInset = UIEdgeInsets.zero
         
         return cell
@@ -121,7 +123,7 @@ extension NewMessageView: UINavigationControllerDelegate {
     func navigationController(_ navigationController: UINavigationController, willShow viewController: UIViewController, animated: Bool) {
         let item = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         
-        navigationController.navigationItem.title = "Select user"
+        navigationItem.title = "Select user"
         navigationController.navigationBar.topItem?.backBarButtonItem = item
     }
 }

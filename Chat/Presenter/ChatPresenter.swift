@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import Firebase
+import FirebaseDatabase
 
 protocol ChatScreenView: class {
     func messageOutput(text: String, time: Int, sender: String)

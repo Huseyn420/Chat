@@ -7,7 +7,8 @@
 //
 
 import Foundation
-import Firebase
+import FirebaseDatabase
+import FirebaseAuth
 
 protocol MessengerScreenView: class {
     func dataProcessing(name: String, text: String, time: Int, url: String, interlocutor: String)

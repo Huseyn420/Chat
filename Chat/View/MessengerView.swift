@@ -7,7 +7,8 @@
 //
 
 import UIKit
-import Firebase
+import FirebaseAuth
+import FirebaseDatabase
 
 final class MessengerView: UITableViewController {
 
@@ -15,10 +16,10 @@ final class MessengerView: UITableViewController {
     
     private var presenter: MessengerScreenPresenter?
     
-    private var data: [(name: String, text: String, time: String, url: String, interlocutor: String)] = []
+    private var data: [(name: String, text: String, time: Int, url: String, interlocutor: String)] = []
     
-    private let newMessengerImage = UIImage(named: "new_message_icon")
-    private let identifier = "tableViewCell"
+    private let newMessengerImage = UIImage(named: "newMessage")
+    private let identifier = "messengerTableViewCell"
     
     // MARK: - Lifecycle
     
@@ -49,11 +50,15 @@ final class MessengerView: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as! CorrespondenceCell
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as? CorrespondenceCell else {
+            fatalError("Cell should be not nil")
+        }
+        
+        let date = Date(timeIntervalSince1970: Double(data[indexPath.row].time))
         
         cell.textLabel?.text = data[indexPath.row].name
         cell.detailTextLabel?.text = data[indexPath.row].text
-        cell.timeLabel.text = data[indexPath.row].time
+        cell.timeLabel.text = date.convertTime()
         cell.avatarImageView.loadImageUsingCache(urlString: data[indexPath.row].url)
         cell.separatorInset = UIEdgeInsets.zero
         
@@ -78,28 +83,9 @@ extension MessengerView: MessengerScreenView {
    
     // MARK: - Public Method
     
-    func convertTime(time: Int) -> String {
-        let date = Date(timeIntervalSince1970: Double(time))
-        let dateFormatter = DateFormatter()
-        var dateString = String()
-        
-        dateFormatter.timeStyle = .none
-        dateFormatter.dateStyle = .medium
-        
-        if Calendar.current.isDate(date, inSameDayAs: Date()) {
-            dateFormatter.timeStyle = .short
-            dateFormatter.dateStyle = .none
-        }
-        
-        dateString = (time != 0) ? dateFormatter.string(from: date) : "Error"
-        return dateString
-    }
-    
     func dataProcessing(name: String, text: String, time: Int, url: String, interlocutor: String) {
-        var dateString = String()
-        
-        dateString = convertTime(time: time)
-        data.insert((name, text, dateString, url, interlocutor), at: 0)
+        let index = data.insertionIndexOf(elem: (name, text, time, url, interlocutor), isOrderedBefore: { $0.time > $1.time })
+        data.insert((name, text, time, url, interlocutor), at: index)
         
         DispatchQueue.main.async {
             self.tableView.reloadData()
@@ -109,9 +95,8 @@ extension MessengerView: MessengerScreenView {
     func dataChange(text: String, time: Int, interlocutor: String) {
         for (index, message) in data.enumerated() {
             if message.interlocutor == interlocutor {
-                let dateString = convertTime(time: time)
                 data.remove(at: index)
-                data.insert((message.name, text, dateString, message.url, interlocutor), at: 0)
+                data.insert((message.name, text, time, message.url, interlocutor), at: 0)
                 break
             }
         }
@@ -122,6 +107,11 @@ extension MessengerView: MessengerScreenView {
     }
     
     @objc func handleLogout() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            return
+        }
+        
+        Database.database().reference().child("messages").child(uid).removeAllObservers()
         try? Auth.auth().signOut()
         dismiss(animated: true, completion: nil)
     }
